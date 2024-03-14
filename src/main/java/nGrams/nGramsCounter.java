@@ -58,8 +58,7 @@ public class nGramsCounter {
                     // Προσθέτει τις λέξεις στο StringBuilder
                     sb.append(words.get(i + j)).append(" ");
                 }
-                // Αφαιρεί το κενό στο τέλος
-                //  sb.setLength(sb.length() - 1);
+
                 // Αποθηκεύει το n-gram στο Text
                 ngram.set(sb.toString());
                 // Επιστρέφει το n-gram και το 1
@@ -85,8 +84,7 @@ public class nGramsCounter {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        // Ρυθμίζει το μέγεθος των n-grams από το command line ή απο το configuration file
-        conf.setInt("nGrams", Integer.parseInt(args[2]));
+
         Job job = new Job(conf, "nGramCount");
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
@@ -96,6 +94,8 @@ public class nGramsCounter {
         job.setOutputFormatClass(TextOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        // Ρυθμίζει το μέγεθος των n-grams από το command line ή απο το configuration file
+        conf.setInt("nGrams", Integer.parseInt(args[2]));
         job.waitForCompletion(true);
     }
 }

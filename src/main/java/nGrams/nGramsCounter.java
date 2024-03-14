@@ -20,19 +20,27 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class nGramsCounter {
 
+    // Ρυθμίζει το μέγεθος των n-grams στο configuration file (ορίζετε εσείς το μέγεθος)
+    static int nGramsSize = 2;
+
+    public static void main(String[] args) throws Exception {
+        Configuration conf = new Configuration();
+        conf.setInt("nGrams",nGramsSize); // Προεπιλεγμένο μέγεθος των n-grams
+        Job job = new Job(conf, "nGramCount");
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+        job.setMapperClass(Map.class);
+        job.setReducerClass(Reduce.class);
+        job.setInputFormatClass(TextInputFormat.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        job.waitForCompletion(true);
+    }
     public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
         private Text ngram = new Text();
         private int n;
-
-        // Ρυθμίζει το μέγεθος των n-grams από το command line
-        @Override
-        protected void setup(Context context) throws IOException, InterruptedException {
-            Configuration conf = context.getConfiguration();
-            n = conf.getInt("n", 3); // Προεπιλεγμένο μέγεθος των n-grams
-        }
-
-
 
         // Αναλύει το κείμενο και δημιουργεί τα n-grams
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -65,6 +73,13 @@ public class nGramsCounter {
                 context.write(ngram, one);
             }
         }
+
+        // Ρυθμίζει το μέγεθος των n-grams από το configuration file
+        @Override
+        protected void setup(Context context) throws IOException, InterruptedException {
+            Configuration conf = context.getConfiguration();
+            n = conf.getInt("nGrams", nGramsSize); // Προεπιλεγμένο μέγεθος των n-grams
+        }
     }
 
 
@@ -80,22 +95,5 @@ public class nGramsCounter {
             // Επιστρέφει το n-gram και το άθροισμα
             context.write(key, new IntWritable(sum));
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        Configuration conf = new Configuration();
-
-        Job job = new Job(conf, "nGramCount");
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
-        job.setMapperClass(Map.class);
-        job.setReducerClass(Reduce.class);
-        job.setInputFormatClass(TextInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        // Ρυθμίζει το μέγεθος των n-grams από το command line ή απο το configuration file
-        conf.setInt("nGrams", Integer.parseInt(args[2]));
-        job.waitForCompletion(true);
     }
 }

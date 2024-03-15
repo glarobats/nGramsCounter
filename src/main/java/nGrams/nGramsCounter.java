@@ -21,7 +21,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 public class nGramsCounter {
 
     // Ρυθμίζει το μέγεθος των n-grams στο configuration file (ορίζετε εσείς το μέγεθος)
-    static int nGramsSize = 2;
+    static int nGramsSize = 3;
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
@@ -37,10 +37,19 @@ public class nGramsCounter {
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         job.waitForCompletion(true);
     }
+
+
     public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
         private Text ngram = new Text();
         private int n;
+
+        // Ρυθμίζει το μέγεθος των n-grams από το configuration file
+        @Override
+        protected void setup(Context context) throws IOException, InterruptedException {
+            Configuration conf = context.getConfiguration();
+            n = conf.getInt("nGrams", nGramsSize); // Προεπιλεγμένο μέγεθος των n-grams
+        }
 
         // Αναλύει το κείμενο και δημιουργεί τα n-grams
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -72,13 +81,6 @@ public class nGramsCounter {
                 // Επιστρέφει το n-gram και το 1
                 context.write(ngram, one);
             }
-        }
-
-        // Ρυθμίζει το μέγεθος των n-grams από το configuration file
-        @Override
-        protected void setup(Context context) throws IOException, InterruptedException {
-            Configuration conf = context.getConfiguration();
-            n = conf.getInt("nGrams", nGramsSize); // Προεπιλεγμένο μέγεθος των n-grams
         }
     }
 

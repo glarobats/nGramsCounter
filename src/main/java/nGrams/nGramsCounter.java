@@ -20,12 +20,11 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class nGramsCounter {
 
-    // Ρυθμίζει το μέγεθος των n-grams στο configuration file (ορίζετε εσείς το μέγεθος)
-    static int nGramsSize = 3;
+    // Ρυθμίζει το μέγεθος των n-grams (ορίζετε εσείς το μέγεθος).
+    static int nGramsSize;
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        conf.setInt("nGrams",nGramsSize); // Προεπιλεγμένο μέγεθος των n-grams
         Job job = new Job(conf, "nGramCount");
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
@@ -35,6 +34,8 @@ public class nGramsCounter {
         job.setOutputFormatClass(TextOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        nGramsSize = Integer.parseInt(args[2]);
+        conf.setInt("nGrams", nGramsSize);
         job.waitForCompletion(true);
     }
 
@@ -42,14 +43,8 @@ public class nGramsCounter {
     public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
         private Text ngram = new Text();
-        private int n;
 
-        // Ρυθμίζει το μέγεθος των n-grams από το configuration file
-        @Override
-        protected void setup(Context context) throws IOException, InterruptedException {
-            Configuration conf = context.getConfiguration();
-            n = conf.getInt("nGrams", nGramsSize); // Προεπιλεγμένο μέγεθος των n-grams
-        }
+
 
         // Αναλύει το κείμενο και δημιουργεί τα n-grams
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -57,7 +52,7 @@ public class nGramsCounter {
             String line = value.toString().toLowerCase();
             // Αφαίρεση των σημείων στίξης
             line = line.replaceAll("[^a-zA-Z\\s]", "");
-            // Χωρίζει το κείμενο σε λέξεις
+            // Δημιουργία ενός StringTokenizer για το κείμενο
             StringTokenizer tokenizer = new StringTokenizer(line);
 
             // Αποθηκεύει τις λέξεις σε μια λίστα
@@ -68,10 +63,10 @@ public class nGramsCounter {
             }
 
             // Δημιουργεί τα n-grams
-            for (int i = 0; i <= words.size() - n; i++) {
+            for (int i = 0; i <= words.size() - nGramsSize; i++) {
                 // Αποθηκεύει το n-gram σε ένα StringBuilder
                 StringBuilder sb = new StringBuilder();
-                for (int j = 0; j < n; j++) {
+                for (int j = 0; j < nGramsSize; j++) {
                     // Προσθέτει τις λέξεις στο StringBuilder
                     sb.append(words.get(i + j)).append(" ");
                 }

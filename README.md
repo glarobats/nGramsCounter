@@ -33,9 +33,9 @@ It processes a text dataset, generates **n-grams** (sequences of `n` consecutive
    jar -cvf ngrams.jar -C classes/ .
 
 Run with Hadoop:
-
+```
 hadoop jar ngrams.jar nGrams.nGramsCounter input/text.txt output 3
-
+```
 input/text.txt → input dataset
 
 output → output directory (must not exist before running)
@@ -46,10 +46,13 @@ View results:
 hdfs dfs -cat output/part-r-00000
 
 📊 Example Input
+```
 Hadoop is an open source framework.
 Hadoop makes big data processing easier.
+```
 
 📊 Example Output (bigrams with n=2)
+```
 hadoop is     1
 is an         1
 an open       1
@@ -60,7 +63,7 @@ makes big     1
 big data      1
 data processing 1
 processing easier 1
-
+```
 --------------------------------------------------
 📝 How It Works
 
